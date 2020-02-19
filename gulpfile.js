@@ -1,17 +1,19 @@
 //base part
 
-let {src, dest, parallel, series, watch } = require('gulp'),
+let {src, dest, parallel, series, watch} = require('gulp'),
     rename = require('gulp-rename'),
     sourcemaps = require('gulp-sourcemaps'),
     webpack = require('webpack'),
     gutil = require('gulp-util'),
     notifier = require('node-notifier'),
-    imagemin = require('gulp-imagemin')
+    imagemin = require('gulp-imagemin'),
+    pug = require('gulp-pug'),
+    connect = require('gulp-connect')
 
 //css part
 let scss = require('gulp-sass'),
     concat = require('gulp-concat')
-    cleanCSS = require('gulp-clean-css'),
+cleanCSS = require('gulp-clean-css'),
     autoprefixer = require('gulp-autoprefixer');
 
 let webpackConfig = require('./webpack.config.js');
@@ -20,6 +22,16 @@ let statsLog = { // для красивых логов в консоли
     reasons: true
 };
 
+let server = () => {
+    connect.server({
+        root: 'dist/',
+        port: 8081,
+        livereload: true
+    })
+}
+
+
+
 function swallowError(error) {
     console.log(error.toString());
     this.emit('end');
@@ -27,7 +39,7 @@ function swallowError(error) {
 
 
 //  task style
-function styles (){
+let styles = () => {
     return src('./src/scss/main.scss')
         .pipe(sourcemaps.init())
         // .pipe(less().on('error', less.logError))
@@ -38,13 +50,14 @@ function styles (){
         .pipe(cleanCSS())
         .pipe(rename('style.min.css'))
         .pipe(sourcemaps.write('./'))
-        .pipe(dest('./css'))
+        .pipe(dest('./dist/css'))
+        .pipe(connect.reload())
 
 }
 
-
 function scripts(done) {
     console.log(done);
+
 
     function onError(error) {
         let formatedError = new gutil.PluginError('webpack', error);
@@ -59,7 +72,7 @@ function scripts(done) {
 
     function onSuccess(detailInfo) {
         console.log(detailInfo);
-        done();
+        done()
     }
 
     function onComplete(error, stats) {
@@ -70,28 +83,45 @@ function scripts(done) {
         } else {
             onSuccess(stats.toString(statsLog));
         }
+
     }
 
     // run webpack
     webpack(webpackConfig, onComplete);
 
+
 }
 
-function images() {
-    return src ('./src/images/*.*')
-        .pipe(dest('./images/'))
+let pugToHtml = () => {
+    return src('./src/pug/pages/*.pug')
+        .pipe(pug({
+            pretty: true
+        }))
+        .pipe(dest('./dist/'))
+        .pipe(connect.reload())
 }
 
-function watchFiles(){
+let images = () => {
+    return src('./src/images/*.*')
+        .pipe(dest('./dist/images/'))
+        .pipe(connect.reload())
+
+}
+
+
+let watchFiles = () => {
     watch('./src/**/*.scss', styles);
-    watch('./src/**/*.js', scripts);
-    // gulp.watch('./src/pug/**/*.pug', views);
-     watch('./src/images/*', images);
+    watch('./src/**/*.js',  scripts );
+    watch('./src/pug/**/*.pug', pugToHtml);
+    watch('./src/images/*', images);
 
 }
+
 
 exports.styles = styles;
 exports.scripts = scripts;
+exports.pugToHtml = pugToHtml;
+exports.server = server;
 exports.images = images;
 exports.watch = watch;
-exports.default = series( series(styles,scripts,images), parallel(watchFiles))
+exports.default = series(series(styles, scripts, pugToHtml, images), parallel(server, watchFiles))

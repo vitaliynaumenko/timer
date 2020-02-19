@@ -3,7 +3,7 @@ const path = require('path');
 
 const PATHS = {
     src: path.join(__dirname, './src/js/'),
-    dist: path.join(__dirname, './js'),
+    dist: path.join(__dirname, './dist/js'),
     assets: '/'
 }
 
@@ -22,7 +22,6 @@ module.exports = {
     output: {
         filename: "app.min.js",
         path: PATHS.dist
-
     },
 
     module:{
