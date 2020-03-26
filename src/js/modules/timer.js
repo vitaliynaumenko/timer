@@ -49,7 +49,9 @@ export class Timer {
         diffTime = diffTime % 1000;
 
         this.render(years, months, days, hours, minutes, seconds)
+
         if (minutes < 5) {
+
             document.querySelectorAll('.item__time').forEach((item) => {
                 item.style.color = 'red'
             })
