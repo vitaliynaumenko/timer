@@ -55,11 +55,11 @@ let styles = () => {
 
 }
 
-function scripts(done) {
+// task js
+ let scripts= (done) => {
     console.log(done);
 
-
-    function onError(error) {
+    const onError = (error) => {
         let formatedError = new gutil.PluginError('webpack', error);
 
         notifier.notify({ // чисто чтобы сразу узнать об ошибке
@@ -70,12 +70,12 @@ function scripts(done) {
         done(formatedError);
     }
 
-    function onSuccess(detailInfo) {
+   const onSuccess = (detailInfo) => {
         console.log(detailInfo);
         done()
     }
 
-    function onComplete(error, stats) {
+    const  onComplete = (error, stats) => {
         if (error) { // кажется еще не сталкивался с этой ошибкой
             onError(error);
         } else if (stats.hasErrors()) { // ошибки в самой сборке, к примеру "не удалось найти модуль по заданному пути"
